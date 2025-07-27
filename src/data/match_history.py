@@ -14,7 +14,7 @@ class MatchHistoryRetriever:
         self.api_client = api_client
         self.logger = logging.getLogger(__name__)
     
-    def get_daily_matches(self, puuid: str, region: str = "euw1") -> List[Dict[str, Any]]:
+    def get_daily_matches(self, puuid: str, region: str = None) -> List[Dict[str, Any]]:
         """
         Get matches from today.
         

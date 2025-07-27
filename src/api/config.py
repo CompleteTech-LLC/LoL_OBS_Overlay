@@ -60,6 +60,10 @@ class Config:
         # Display settings
         self.current_season = os.getenv('CURRENT_SEASON', '2025')
         
+        # Region detection settings
+        self.fallback_region = os.getenv('RIOT_FALLBACK_REGION', 'euw1')
+        self.region_detection_timeout = float(os.getenv('RIOT_REGION_DETECTION_TIMEOUT', '2.0'))
+        
         # Now handle API key validation
         # Use League API key for all operations to maintain consistent encryption
         self.api_key = self.league_api_key if self.league_api_key else self.riot_api_key
@@ -106,8 +110,10 @@ class Config:
         }
 
 
-# Default regions to try when detecting accounts
-DEFAULT_REGIONS_TO_TRY = ["na1", "euw1", "eun1", "kr", "br1", "jp1", "oc1", "ru", "tr1", "la1", "la2"]
+# Default regions to try when detecting accounts (can be overridden via environment variable)
+# EUW1 is prioritized as it's a major region with many players
+_DEFAULT_REGIONS = ["euw1", "na1", "eun1", "kr", "br1", "jp1", "oc1", "ru", "tr1", "la1", "la2"]
+DEFAULT_REGIONS_TO_TRY = os.getenv('RIOT_REGION_DETECTION_ORDER', ','.join(_DEFAULT_REGIONS)).split(',')
 
 # API Base URLs
 BASE_URLS = {

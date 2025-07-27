@@ -318,6 +318,7 @@ def main():
     """Automatic session management with real-time monitoring."""
     import time
     import logging
+    from ..utils.console import console
     
     # Configure logging to suppress all messages
     logging.basicConfig(level=logging.CRITICAL)
@@ -333,18 +334,19 @@ def main():
     last_account_refresh = 0
     last_overlay_update = 0
     game_was_active = False
+    start_time = time.time()
     
     # Use configurable intervals
     game_check_interval = manager.config.game_check_interval
     account_refresh_interval = manager.config.account_refresh_interval
     overlay_update_interval = manager.config.overlay_update_interval
     
-    print("🎮 League Account Monitor Started")
-    print(f"📡 Checking for League games every {game_check_interval}s")
-    print(f"🔄 Refreshing account data every {account_refresh_interval}s when idle")
-    print(f"📺 Updating overlay every {overlay_update_interval}s during games")
-    print("⏹️  Press Ctrl+C to stop")
-    print("⭕ Waiting for League game to start...")
+    console.print_permanent("🎮 League Account Monitor Started")
+    console.print_permanent(f"📡 Checking for League games every {game_check_interval}s")
+    console.print_permanent(f"🔄 Refreshing account data every {account_refresh_interval}s when idle")
+    console.print_permanent(f"📺 Updating overlay every {overlay_update_interval}s during games")
+    console.print_permanent("⏹️  Press Ctrl+C to stop")
+    console.print_temporary("⭕ Waiting for League game to start...")
     
     try:
         while True:
@@ -355,12 +357,12 @@ def main():
             if detected:
                 # Game is active
                 if not game_was_active:
-                    print(f"🟢 Game detected: {detected['riot_id']}")
+                    console.print_permanent(f"🟢 Game detected: {detected['riot_id']}")
                     game_was_active = True
                 
                 # Update current account if it changed
                 if last_detected_account != detected['riot_id']:
-                    print(f"🔄 Account switched: {detected['riot_id']}")
+                    console.print_permanent(f"🔄 Account switched: {detected['riot_id']}")
                     last_detected_account = detected['riot_id']
                     # Immediately update overlay on account switch
                     manager.generate_overlay_for_current_account()
@@ -375,41 +377,44 @@ def main():
                 # No game detected
                 if game_was_active:
                     # Game just ended - immediately refresh account data
-                    print("🔴 Game ended - refreshing data...", end=" ")
                     data = manager.generate_overlay_for_current_account()
                     if "error" not in data:
-                        print("✅")
+                        console.print_permanent("🔴 Game ended - refreshing data... ✅")
                     else:
-                        print(f"❌ {data['error']}")
+                        console.print_permanent(f"🔴 Game ended - refreshing data... ❌ {data['error']}")
                     
                     last_account_refresh = current_time
                     game_was_active = False
                     
                 elif current_time - last_account_refresh > account_refresh_interval:
                     # Refresh account data at configured interval when not in game
-                    print("🔄 Refreshing account data...", end=" ")
                     data = manager.generate_overlay_for_current_account()
                     if "error" not in data:
-                        print("✅")
+                        console.print_permanent("🔄 Refreshing account data... ✅")
                     else:
-                        print(f"❌ {data['error']}")
+                        console.print_permanent(f"🔄 Refreshing account data... ❌ {data['error']}")
                     last_account_refresh = current_time
                 
-                # Only show status periodically, not every second
-                if not game_was_active and int(current_time) % 30 == 0:  # Every 30 seconds
-                    print("⭕ Waiting for League game to start...", end="\r")
+                # Show waiting status when not in game
+                if not game_was_active:
+                    elapsed_minutes = int((current_time - start_time) / 60)
+                    if elapsed_minutes > 0:
+                        status_msg = f"⭕ Waiting for League game to start... ({elapsed_minutes}m)"
+                    else:
+                        status_msg = "⭕ Waiting for League game to start..."
+                    console.update_status_if_needed(status_msg)
             
             time.sleep(game_check_interval)  # Use configurable check interval
             
     except KeyboardInterrupt:
-        print("\n\n👋 Monitor stopped")
+        console.newline()
+        console.print_permanent("👋 Monitor stopped")
         # Generate final account refresh
-        print("🔄 Final account data refresh...")
         data = manager.generate_overlay_for_current_account()
         if "error" not in data:
-            print("✅ Final refresh complete!")
+            console.print_permanent("🔄 Final account data refresh... ✅")
         else:
-            print(f"❌ Final refresh failed: {data['error']}")
+            console.print_permanent(f"🔄 Final account data refresh... ❌ {data['error']}")
 
 
 if __name__ == "__main__":

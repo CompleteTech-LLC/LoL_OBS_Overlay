@@ -8,7 +8,7 @@ import requests
 import time
 import logging
 from typing import Optional, Dict, List, Any, Union
-from .config import Config, BASE_URLS, REGIONAL_ROUTING, RATE_LIMIT_DELAY
+from .config import Config, BASE_URLS, REGIONAL_ROUTING, RATE_LIMIT_DELAY, DEFAULT_REGIONS_TO_TRY
 
 
 class RiotAPIError(Exception):
@@ -63,6 +63,42 @@ class RiotAPIClient:
         # Configure session timeout and retries
         self.session.timeout = self.config.session_timeout
         self.logger.info("Riot API client initialized successfully")
+    
+    def detect_account_region(self, game_name: str, tag_line: str) -> str:
+        """
+        Detect the correct region for an account by trying different regions.
+        
+        Args:
+            game_name: The player's game name
+            tag_line: The player's tag line
+            
+        Returns:
+            The region where the account was found, uses configured fallback if not found
+        """
+        import time
+        
+        for region in DEFAULT_REGIONS_TO_TRY:
+            try:
+                start_time = time.time()
+                # Try to get account info from this region
+                account = self.get_account_by_riot_id(game_name, tag_line)
+                if account:
+                    self.logger.info(f"Found account {game_name}#{tag_line} in region: {region}")
+                    return region
+                
+                # Check if we're taking too long per region
+                if time.time() - start_time > self.config.region_detection_timeout:
+                    self.logger.debug(f"Region detection timeout for {region}")
+                    continue
+                    
+            except RiotAPIError as e:
+                # Skip regions that return errors
+                self.logger.debug(f"Region {region} failed: {e}")
+                continue
+        
+        # Use configured fallback region if not found
+        self.logger.warning(f"Could not detect region for {game_name}#{tag_line}, using fallback: {self.config.fallback_region}")
+        return self.config.fallback_region
     
     def _sanitize_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Sanitize request parameters for security.
@@ -151,7 +187,7 @@ class RiotAPIClient:
             self.logger.error(f"Failed to get account {game_name}#{tag_line}: {e}")
             raise
     
-    def get_summoner_by_puuid(self, puuid: str, region: str = "euw1") -> Optional[Dict[str, Any]]:
+    def get_summoner_by_puuid(self, puuid: str, region: str = None) -> Optional[Dict[str, Any]]:
         """
         Get summoner information using PUUID.
         
@@ -175,7 +211,7 @@ class RiotAPIClient:
             self.logger.error(f"Failed to get summoner for PUUID {puuid[:20]}...: {e}")
             raise
     
-    def get_match_ids_by_puuid(self, puuid: str, region: str = "euw1", 
+    def get_match_ids_by_puuid(self, puuid: str, region: str = None, 
                               start_time: int = None, count: int = 20) -> List[str]:
         """
         Get match IDs for a player by PUUID.
@@ -205,7 +241,7 @@ class RiotAPIClient:
             self.logger.error(f"Failed to get match IDs for PUUID {puuid[:20]}...: {e}")
             return []
     
-    def get_match_data(self, match_id: str, region: str = "euw1") -> Optional[Dict[str, Any]]:
+    def get_match_data(self, match_id: str, region: str = None) -> Optional[Dict[str, Any]]:
         """
         Get detailed match data by match ID.
         
@@ -230,7 +266,7 @@ class RiotAPIClient:
             self.logger.error(f"Failed to get match data for {match_id}: {e}")
             return None
     
-    def get_ranked_entries_by_puuid(self, puuid: str, region: str = "euw1") -> Optional[List[Dict[str, Any]]]:
+    def get_ranked_entries_by_puuid(self, puuid: str, region: str = None) -> Optional[List[Dict[str, Any]]]:
         """
         Get ranked entries using PUUID (newer endpoint).
         
@@ -254,7 +290,7 @@ class RiotAPIClient:
             self.logger.error(f"Failed to get ranked data via PUUID {puuid[:20]}...: {e}")
             return None
     
-    def get_ranked_entries_by_summoner_id(self, summoner_id: str, region: str = "euw1") -> Optional[List[Dict[str, Any]]]:
+    def get_ranked_entries_by_summoner_id(self, summoner_id: str, region: str = None) -> Optional[List[Dict[str, Any]]]:
         """
         Get ranked entries using summoner ID.
         
@@ -278,7 +314,7 @@ class RiotAPIClient:
             self.logger.error(f"Failed to get ranked data via summoner ID {summoner_id[:20]}...: {e}")
             return None
     
-    def get_high_tier_league(self, tier: str, queue: str, region: str = "euw1") -> Optional[Dict[str, Any]]:
+    def get_high_tier_league(self, tier: str, queue: str, region: str = None) -> Optional[Dict[str, Any]]:
         """
         Get high tier league data (Challenger/Grandmaster/Master).
         

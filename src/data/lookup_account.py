@@ -19,11 +19,11 @@ from ..utils.formatters import OutputFormatter
 class LeagueAccountLookup:
     """Main class for League of Legends account lookup functionality."""
     
-    def __init__(self, region: str = "euw1"):
+    def __init__(self, region: str = None):
         """Initialize the lookup service.
         
         Args:
-            region: The region to use for API requests (default: euw1)
+            region: The region to use for API requests (auto-detects if None)
         """
         self.region = region
         self.logger = logging.getLogger(__name__)
@@ -74,6 +74,11 @@ class LeagueAccountLookup:
                     "Please check the spelling and ensure the account exists"
                 ))
                 return None
+            
+            # Auto-detect region if not specified
+            if self.region is None:
+                self.region = self.api_client.detect_account_region(game_name, tag_line)
+                self.logger.info(f"Auto-detected region: {self.region}")
             
             # Step 2: Get summoner information
             summoner = self.api_client.get_summoner_by_puuid(account['puuid'], self.region)
@@ -175,7 +180,7 @@ def main():
         if len(sys.argv) >= 3:
             game_name = sys.argv[1]
             tag_line = sys.argv[2]
-            region = sys.argv[3] if len(sys.argv) > 3 else "euw1"
+            region = sys.argv[3] if len(sys.argv) > 3 else None
         else:
             print("❌ Error: game_name and tag_line are required")
             print("Usage: python -m src.data.lookup_account <game_name> <tag_line> [region]")

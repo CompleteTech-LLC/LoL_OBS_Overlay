@@ -123,9 +123,12 @@ def cmd_lookup(args):
     
     game_name = args[0]
     tag_line = args[1]  
-    region = args[2] if len(args) > 2 else detect_account_region(game_name, tag_line)
+    region = args[2] if len(args) > 2 else None
     
-    print(f"🔍 Looking up player: {game_name}#{tag_line} in {region.upper()}")
+    if region:
+        print(f"🔍 Looking up player: {game_name}#{tag_line} in {region.upper()}")
+    else:
+        print(f"🔍 Looking up player: {game_name}#{tag_line} (auto-detecting region...)")
     
     try:
         lookup_service = LeagueAccountLookup(region)
@@ -147,9 +150,9 @@ def cmd_overlay(args):
         if account_info and account_info.get('tag_line'):
             game_name = account_info['game_name']
             tag_line = account_info['tag_line']
-            # Auto-detect region for this account
-            region = detect_account_region(game_name, tag_line)
-            print(f"✅ Detected account: {account_info['riot_id']} in {region.upper()}")
+            # Region will be auto-detected in the overlay function
+            region = None
+            print(f"✅ Detected account: {account_info['riot_id']} (region will be auto-detected)")
         else:
             print("❌ Could not detect account - please start a League game first")
             return False
@@ -162,9 +165,12 @@ def cmd_overlay(args):
         
         game_name = args[0]
         tag_line = args[1]
-        region = args[2] if len(args) > 2 else detect_account_region(game_name, tag_line)
+        region = args[2] if len(args) > 2 else None
     
-    print(f"🎥 Generating OBS overlay for: {game_name}#{tag_line} in {region.upper()}")
+    if region:
+        print(f"🎥 Generating OBS overlay for: {game_name}#{tag_line} in {region.upper()}")
+    else:
+        print(f"🎥 Generating OBS overlay for: {game_name}#{tag_line} (auto-detecting region...)")
     
     try:
         exporter = OBSOverlayExporter()

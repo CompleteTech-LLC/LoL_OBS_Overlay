@@ -45,13 +45,13 @@ class OBSOverlayExporter:
             self.logger.error(f"Failed to create output directory {self.output_dir}: {e}")
             raise
     
-    def export_player_data(self, game_name: str, tag_line: str, region: str = "euw1") -> Dict[str, Any]:
+    def export_player_data(self, game_name: str, tag_line: str, region: str = None) -> Dict[str, Any]:
         """Export complete player data for OBS overlay.
         
         Args:
             game_name: Player's game name (will be sanitized)
             tag_line: Player's tag line (will be sanitized)
-            region: Region for lookup (default: "euw1")
+            region: Region for lookup (auto-detects if None)
             
         Returns:
             Dictionary containing all player data, or error dict if failed
@@ -65,6 +65,15 @@ class OBSOverlayExporter:
         
         game_name = self._sanitize_input(game_name)
         tag_line = self._sanitize_input(tag_line)
+        
+        # Auto-detect region if not provided
+        if region is None:
+            from ..api.riot_api import RiotAPIClient
+            from ..api.config import Config
+            api_client = RiotAPIClient(Config())
+            region = api_client.detect_account_region(game_name, tag_line)
+            self.logger.info(f"Auto-detected region: {region}")
+        
         # Perform lookup with error handling
         try:
             lookup_service = LeagueAccountLookup(region)

@@ -13,7 +13,7 @@ class RankedInfoRetriever:
         self.api_client = api_client
         self.logger = logging.getLogger(__name__)
     
-    def get_ranked_info_by_puuid(self, puuid: str, region: str = "euw1") -> Optional[List[Dict[str, Any]]]:
+    def get_ranked_info_by_puuid(self, puuid: str, region: str = None) -> Optional[List[Dict[str, Any]]]:
         """
         Get ranked information using PUUID with fallback methods.
         
