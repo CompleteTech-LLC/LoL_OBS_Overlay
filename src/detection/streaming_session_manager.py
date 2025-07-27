@@ -70,8 +70,8 @@ class StreamingSessionManager:
         data["last_updated"] = datetime.now().isoformat()
         
         try:
-            with open(self.session_file, 'w') as f:
-                json.dump(data, f, indent=2)
+            with open(self.session_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
             self.logger.debug("Session data saved")
         except Exception as e:
             self.logger.error(f"Failed to save session: {e}")

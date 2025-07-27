@@ -352,7 +352,7 @@ class OBSOverlayExporter:
 </body>
 </html>"""
         
-        with open(os.path.join(self.output_dir, "01_rank_overlay.html"), "w") as f:
+        with open(os.path.join(self.output_dir, "01_rank_overlay.html"), "w", encoding="utf-8") as f:
             f.write(html_content)
     
     def _create_daily_stats_overlay(self, daily: Dict[str, Any], player: Dict[str, Any]):
@@ -409,7 +409,7 @@ class OBSOverlayExporter:
 </body>
 </html>"""
         
-        with open(os.path.join(self.output_dir, "02_daily_stats_overlay.html"), "w") as f:
+        with open(os.path.join(self.output_dir, "02_daily_stats_overlay.html"), "w", encoding="utf-8") as f:
             f.write(html_content)
     
     def _create_recent_matches_overlay(self, matches: List[Dict[str, Any]], player: Dict[str, Any]):
@@ -489,7 +489,7 @@ class OBSOverlayExporter:
 </body>
 </html>"""
         
-        with open(os.path.join(self.output_dir, "03_recent_matches_overlay.html"), "w") as f:
+        with open(os.path.join(self.output_dir, "03_recent_matches_overlay.html"), "w", encoding="utf-8") as f:
             f.write(html_content)
     
     def _create_combined_overlay(self, data: Dict[str, Any]):
@@ -674,7 +674,7 @@ class OBSOverlayExporter:
 </body>
 </html>"""
         
-        with open(os.path.join(self.output_dir, "04_combined_overlay.html"), "w") as f:
+        with open(os.path.join(self.output_dir, "04_combined_overlay.html"), "w", encoding="utf-8") as f:
             f.write(html_content)
     
     def _generate_accounts_html_for_combined(self, todays_accounts: list, current_riot_id: str) -> str:
@@ -749,7 +749,7 @@ class OBSOverlayExporter:
 </body>
 </html>"""
         
-        with open(os.path.join(self.output_dir, "05_accounts_overlay.html"), "w") as f:
+        with open(os.path.join(self.output_dir, "05_accounts_overlay.html"), "w", encoding="utf-8") as f:
             f.write(html_content)
 
 
