@@ -505,29 +505,12 @@ class OBSOverlayExporter:
         """Create a combined overlay with all information including accounts."""
         from ..detection.client_detector import LeagueClientDetector
         
-        # Get today's accounts for display
-        detector = LeagueClientDetector()
-        session_file = Path("streaming_session.json")
-        todays_accounts = []
+        # Get today's accounts for display using session manager
+        from ..detection.streaming_session_manager import StreamingSessionManager
+        session_manager = StreamingSessionManager()
+        todays_accounts = session_manager.get_todays_accounts()
         
-        if session_file.exists():
-            try:
-                with open(session_file, 'r') as f:
-                    session_data = json.load(f)
-                    
-                # Get today's accounts
-                from datetime import date
-                today = date.today().isoformat()
-                
-                for account in session_data.get("accounts", []):
-                    last_seen = account.get("last_seen", "")
-                    first_seen = account.get("first_seen", "")
-                    
-                    if (last_seen.startswith(today) or first_seen.startswith(today)):
-                        todays_accounts.append(account)
-                        
-            except (json.JSONDecodeError, KeyError):
-                pass
+        detector = LeagueClientDetector()
         
         # Get current account for highlighting
         current_account = detector.detect_current_account()
@@ -709,20 +692,52 @@ class OBSOverlayExporter:
     
     def _create_accounts_overlay(self) -> None:
         """Create accounts overlay showing all accounts used today."""
-        html_content = """<!DOCTYPE html>
+        # Get today's accounts using session manager
+        from ..detection.streaming_session_manager import StreamingSessionManager
+        from ..detection.client_detector import LeagueClientDetector
+        
+        session_manager = StreamingSessionManager()
+        todays_accounts = session_manager.get_todays_accounts()
+        
+        # Get current account for highlighting
+        detector = LeagueClientDetector()
+        current_account = detector.detect_current_account()
+        current_riot_id = current_account.get('riot_id') if current_account else None
+        
+        # Generate accounts HTML
+        if todays_accounts:
+            accounts_html = ""
+            for i, account in enumerate(todays_accounts, 1):
+                riot_id = account.get("riot_id", "Unknown")
+                region = account.get("region", "unknown").upper()
+                times_used = account.get("times_used", 0)
+                last_seen_time = account.get('last_seen', '').split('T')[1][:8] if 'T' in account.get('last_seen', '') else "Unknown"
+                
+                # Highlight current account
+                highlight_class = "current-account" if riot_id == current_riot_id else ""
+                
+                accounts_html += f"""
+                <div class="account-item {highlight_class}">
+                    <div class="account-name">{riot_id}</div>
+                    <div class="account-details">{region} • Used {times_used}x • Last: {last_seen_time}</div>
+                </div>"""
+        else:
+            accounts_html = '<div class="no-accounts">No accounts detected today</div>'
+        
+        html_content = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <style>
-        body {
+        body {{
             margin: 0;
             padding: 15px;
             font-family: 'Arial', sans-serif;
             background: transparent;
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-        .accounts-container {
+        }}
+        .accounts-container {{
             background: rgba(0, 20, 40, 0.85);
             border: 2px solid #c89b3c;
             border-radius: 10px;
@@ -730,30 +745,51 @@ class OBSOverlayExporter:
             display: inline-block;
             backdrop-filter: blur(5px);
             min-width: 300px;
-        }
-        .accounts-title {
+            max-width: 500px;
+        }}
+        .accounts-title {{
             font-size: 18px;
             color: #c89b3c;
             margin-bottom: 15px;
             font-weight: bold;
             text-align: center;
-        }
-        .no-accounts {
+        }}
+        .account-item {{
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid #555;
+        }}
+        .account-item.current-account {{
+            background: rgba(200, 155, 60, 0.2);
+            border-left-color: #c89b3c;
+        }}
+        .account-name {{
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }}
+        .account-details {{
+            font-size: 11px;
+            color: #ccc;
+        }}
+        .no-accounts {{
             text-align: center;
             color: #888;
             font-style: italic;
             padding: 20px;
-        }
+        }}
     </style>
 </head>
 <body>
     <div class="accounts-container">
-        <div class="accounts-title">Today's Accounts</div>
-        <div class="no-accounts">No accounts detected today</div>
+        <div class="accounts-title">Today's Accounts ({len(todays_accounts)})</div>
+        {accounts_html}
     </div>
     
     <script>
-        setTimeout(() => location.reload(), 1000);
+        setTimeout(() => location.reload(), 5000);
     </script>
 </body>
 </html>"""

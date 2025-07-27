@@ -163,6 +163,23 @@ class StreamingSessionManager:
             if existing["riot_id"] == account_info["riot_id"]:
                 existing["last_seen"] = datetime.now().isoformat()
                 existing["times_used"] += 1
+                
+                # Update region if user has configured a specific region and it's different
+                from ..api.config import Config
+                config = Config()
+                if config.region and existing["region"] != config.region:
+                    # Verify the account exists in the configured region
+                    try:
+                        from ..api.riot_api import RiotAPIClient
+                        api_client = RiotAPIClient(config)
+                        account = api_client.get_account_by_riot_id(account_info["game_name"], account_info["tag_line"])
+                        if account:
+                            self.logger.info(f"Updating region for {account_info['riot_id']}: {existing['region']} -> {config.region}")
+                            existing["region"] = config.region
+                    except Exception:
+                        self.logger.debug(f"Could not verify {account_info['riot_id']} in configured region {config.region}, keeping {existing['region']}")
+                
+                self.session_data["current_account"] = existing  # Update current account pointer
                 self.logger.info(f"Updated existing account: {account_info['riot_id']}")
                 self.save_session()
                 return
