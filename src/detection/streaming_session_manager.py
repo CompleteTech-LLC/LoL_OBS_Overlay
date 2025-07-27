@@ -6,11 +6,19 @@ account switching and session tracking functionality.
 
 import json
 import os
+import sys
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from pathlib import Path
 import logging
 from .client_detector import LeagueClientDetector
+
+# Fix Windows console encoding for Unicode characters
+if sys.platform == "win32":
+    import locale
+    import codecs
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
 # from ..overlay.obs_overlay import OBSOverlayExporter
 
 
