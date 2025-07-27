@@ -66,7 +66,7 @@ class RiotAPIClient:
     
     def detect_account_region(self, game_name: str, tag_line: str) -> str:
         """
-        Detect the correct region for an account by trying different regions.
+        Detect the correct region for an account using multiple methods.
         
         Args:
             game_name: The player's game name
@@ -77,6 +77,40 @@ class RiotAPIClient:
         """
         import time
         
+        # Method 1: Try to detect region from League client if running (currently disabled due to reliability issues)
+        # TODO: Re-enable once client detection is more reliable
+        # try:
+        #     from ..detection.client_detector import LeagueClientDetector
+        #     client_detector = LeagueClientDetector()
+        #     client_region = client_detector.detect_region_from_client()
+        #     if client_region:
+        #         self.logger.info(f"Detected region from League client: {client_region}")
+        #         # Verify the account exists in this region
+        #         try:
+        #             account = self.get_account_by_riot_id(game_name, tag_line)
+        #             if account:
+        #                 self.logger.info(f"Verified account {game_name}#{tag_line} exists in client region: {client_region}")
+        #                 return client_region
+        #             else:
+        #                 self.logger.warning(f"Account {game_name}#{tag_line} not found in client region {client_region}, falling back to API detection")
+        #         except RiotAPIError:
+        #             self.logger.warning(f"Failed to verify account in client region {client_region}, falling back to API detection")
+        # except Exception as e:
+        #     self.logger.debug(f"Client region detection failed: {e}")
+        
+        # Check if user has configured a specific region first
+        if self.config.region:
+            try:
+                self.logger.info(f"Trying configured region: {self.config.region}")
+                # Try to get account info from configured region
+                account = self.get_account_by_riot_id(game_name, tag_line)
+                if account:
+                    self.logger.info(f"Found account {game_name}#{tag_line} in configured region: {self.config.region}")
+                    return self.config.region
+            except RiotAPIError:
+                self.logger.warning(f"Account not found in configured region {self.config.region}, trying other regions")
+        
+        # Method 1: Use improved API-based region detection
         for region in DEFAULT_REGIONS_TO_TRY:
             try:
                 start_time = time.time()

@@ -49,11 +49,22 @@ def detect_account_region(game_name: str, tag_line: str) -> str:
     from src.api.riot_api import RiotAPIClient
     from src.api.config import Config, DEFAULT_REGIONS_TO_TRY
     
-    # Use configurable regions list
-    regions_to_try = DEFAULT_REGIONS_TO_TRY
-    
     config = Config()
     api_client = RiotAPIClient(config)
+    
+    # Check if user has configured a specific region first
+    if config.region:
+        try:
+            print(f"🌍 Trying configured region: {config.region.upper()}")
+            account = api_client.get_account_by_riot_id(game_name, tag_line)
+            if account:
+                print(f"🌍 Found account in configured region: {config.region.upper()}")
+                return config.region
+        except Exception:
+            print(f"⚠️ Account not found in configured region {config.region.upper()}, trying other regions")
+    
+    # Use configurable regions list
+    regions_to_try = DEFAULT_REGIONS_TO_TRY
     
     for region in regions_to_try:
         try:

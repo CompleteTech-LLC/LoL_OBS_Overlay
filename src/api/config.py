@@ -61,6 +61,7 @@ class Config:
         self.current_season = os.getenv('CURRENT_SEASON', '2025')
         
         # Region detection settings
+        self.region = os.getenv('REGION', '').lower()
         self.fallback_region = os.getenv('RIOT_FALLBACK_REGION', 'euw1')
         self.region_detection_timeout = float(os.getenv('RIOT_REGION_DETECTION_TIMEOUT', '2.0'))
         

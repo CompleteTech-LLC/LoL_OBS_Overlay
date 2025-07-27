@@ -96,7 +96,22 @@ class StreamingSessionManager:
         Returns:
             The region where the account was found, defaults to "na1"
         """
-        from ..api.config import DEFAULT_REGIONS_TO_TRY
+        from ..api.config import DEFAULT_REGIONS_TO_TRY, Config
+        
+        # Check if user has configured a specific region first
+        config = Config()
+        if config.region:
+            try:
+                from ..api.riot_api import RiotAPIClient
+                api_client = RiotAPIClient(config)
+                
+                self.logger.info(f"Trying configured region: {config.region}")
+                account = api_client.get_account_by_riot_id(game_name, tag_line)
+                if account:
+                    self.logger.info(f"Found account {game_name}#{tag_line} in configured region: {config.region}")
+                    return config.region
+            except Exception:
+                self.logger.warning(f"Account not found in configured region {config.region}, trying other regions")
         
         # Use configurable regions list
         regions_to_try = DEFAULT_REGIONS_TO_TRY
