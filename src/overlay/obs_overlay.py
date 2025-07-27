@@ -32,6 +32,8 @@ class OBSOverlayExporter:
         Args:
             output_dir: Directory to save overlay files (default: "obs_data")
         """
+        from ..api.config import Config
+        self.config = Config()
         self.output_dir = Path(output_dir)
         self.logger = logging.getLogger(__name__)
         self.ensure_output_directory()
@@ -269,7 +271,7 @@ class OBSOverlayExporter:
             }
             .overlay-container {
                 background: rgba(0, 20, 40, 0.85);
-                border: 2px solid #c89b3c;
+                border: 2px solid {self.config.color};
                 border-radius: 10px;
                 padding: 15px;
                 display: inline-block;
@@ -317,7 +319,7 @@ class OBSOverlayExporter:
         }}
         .rank-container {{
             background: rgba(0, 20, 40, 0.85);
-            border: 2px solid #c89b3c;
+            border: 2px solid {self.config.color};
             border-radius: 10px;
             padding: 15px;
             display: inline-block;
@@ -325,7 +327,7 @@ class OBSOverlayExporter:
         }}
         .player-name {{
             font-size: 18px;
-            color: #c89b3c;
+            color: {self.config.color};
             margin-bottom: 10px;
             font-weight: bold;
         }}
@@ -536,13 +538,13 @@ class OBSOverlayExporter:
         }}
         .panel {{
             background: rgba(0, 20, 40, 0.95);
-            border: 3px solid #c89b3c;
+            border: 3px solid {self.config.color};
             border-radius: 10px;
             padding: 15px;
             backdrop-filter: blur(5px);
             min-width: 120px;
         }}
-        .rank-panel {{ border-color: #c89b3c; }}
+        .rank-panel {{ border-color: {self.config.color}; }}
         .stats-panel {{ border-color: #0596aa; }}
         .matches-panel {{ border-color: #8a2be2; }}
         .accounts-panel {{ border-color: #ff6b35; }}
@@ -550,7 +552,7 @@ class OBSOverlayExporter:
             font-size: 16px;
             font-weight: bold;
             margin-bottom: 10px;
-            color: #c89b3c;
+            color: {self.config.color};
         }}
         .rank-display {{
             font-size: 20px;
@@ -739,7 +741,7 @@ class OBSOverlayExporter:
         }}
         .accounts-container {{
             background: rgba(0, 20, 40, 0.85);
-            border: 2px solid #c89b3c;
+            border: 2px solid {self.config.color};
             border-radius: 10px;
             padding: 15px;
             display: inline-block;
@@ -749,7 +751,7 @@ class OBSOverlayExporter:
         }}
         .accounts-title {{
             font-size: 18px;
-            color: #c89b3c;
+            color: {self.config.color};
             margin-bottom: 15px;
             font-weight: bold;
             text-align: center;
@@ -763,7 +765,7 @@ class OBSOverlayExporter:
         }}
         .account-item.current-account {{
             background: rgba(200, 155, 60, 0.2);
-            border-left-color: #c89b3c;
+            border-left-color: {self.config.color};
         }}
         .account-name {{
             font-weight: bold;

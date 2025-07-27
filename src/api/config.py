@@ -59,6 +59,7 @@ class Config:
         
         # Display settings
         self.current_season = os.getenv('CURRENT_SEASON', '2025')
+        self.color = os.getenv('COLOR', '#c89b3c')  # Default to League of Legends gold
         
         # Region detection settings
         self.region = os.getenv('REGION', '').lower()
