@@ -545,9 +545,9 @@ class OBSOverlayExporter:
             min-width: 120px;
         }}
         .rank-panel {{ border-color: {self.config.color}; }}
-        .stats-panel {{ border-color: #0596aa; }}
-        .matches-panel {{ border-color: #8a2be2; }}
-        .accounts-panel {{ border-color: #ff6b35; }}
+        .stats-panel {{ border-color: {self.config.color}; }}
+        .matches-panel {{ border-color: {self.config.color}; }}
+        .accounts-panel {{ border-color: {self.config.color}; }}
         .panel-title {{
             font-size: 16px;
             font-weight: bold;
@@ -607,7 +607,7 @@ class OBSOverlayExporter:
         
         <!-- Daily Stats Panel -->
         <div class="panel stats-panel">
-            <div class="panel-title" style="color: #0596aa;">Today</div>
+            <div class="panel-title">Today</div>
             <div class="stat-item">Games: <span class="highlight">{data["daily_stats"]["games_today"]}</span></div>
             <div class="stat-item">Record: <span class="highlight">{data["daily_stats"]["wins_today"]}W-{data["daily_stats"]["losses_today"]}L</span></div>
             <div class="stat-item">WR: <span class="highlight">{data["daily_stats"]["winrate_today"]}%</span></div>
@@ -616,13 +616,13 @@ class OBSOverlayExporter:
         
         <!-- Recent Matches Panel -->
         <div class="panel matches-panel">
-            <div class="panel-title" style="color: #8a2be2;">Recent</div>
+            <div class="panel-title">Recent</div>
             {"".join([f'<div class="match-item"><span class="{"win" if match["win"] else "loss"}">{match["champion"]}</span> ({match["role"]}) {match["kda"]}</div>' for match in data["recent_matches"][:3]])}
         </div>
         
         <!-- Accounts Panel -->
         <div class="panel accounts-panel">
-            <div class="panel-title" style="color: #ff6b35;">Today's Accounts</div>
+            <div class="panel-title">Today's Accounts</div>
             {self._generate_accounts_html_for_combined(todays_accounts, current_riot_id)}
         </div>
     </div>
