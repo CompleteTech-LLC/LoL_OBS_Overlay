@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/banner.jpg" alt="Abstract glowing isometric streaming overlay panels with rank hexagons, bar charts and a match strip around a live broadcast monitor, in teal and amber on midnight navy." width="100%"></p>
+
 # League of Legends API Client
 
 A real-time League of Legends account monitoring tool that automatically generates OBS overlays for streamers. Detects account switches, tracks ranked data, and provides live-updating overlays perfect for streaming.
