@@ -1,135 +1,88 @@
 <p align="center"><img src="assets/banner.jpg" alt="Abstract glowing isometric streaming overlay panels with rank hexagons, bar charts and a match strip around a live broadcast monitor, in teal and amber on midnight navy." width="100%"></p>
 
-# League of Legends API Client
+# LoL OBS Overlay
 
-A real-time League of Legends account monitoring tool that automatically generates OBS overlays for streamers. Detects account switches, tracks ranked data, and provides live-updating overlays perfect for streaming.
+Real-time League of Legends account monitor that generates auto-updating OBS overlays for streamers.
 
-## ✨ Key Features
+It is a Python command-line tool for League streamers. It reads your ranked data and recent matches from the Riot Games API, detects which account is active in the local League client, and writes HTML overlay files that an OBS Browser Source can display. Status: early prototype with no automated tests; it needs your own Riot API key.
 
-- **🎮 Real-Time Monitoring**: Automatically detects your current League account during games
-- **🎥 Live OBS Overlays**: Auto-updating overlays with rank, stats, and match history
-- **🔄 Account Switching**: Seamlessly handles multiple accounts during streaming
-- **📊 Live Stats**: Rank, daily performance, recent matches, and session tracking
-- **⚡ Instant Updates**: Overlays refresh every 5 seconds with aggressive auto-refresh
-- **🛡️ Robust & Secure**: Rate limiting, error handling, and secure API management
+## Quickstart
 
-## 📁 Project Structure
-
-```
-league_of_legends_api/
-├── main.py              # Main CLI entry point
-├── src/                 # Source code package
-│   ├── api/            # Riot Games API integration
-│   │   ├── config.py   # Configuration and constants
-│   │   └── riot_api.py # API client with error handling
-│   ├── data/           # Data processing and retrieval
-│   │   ├── lookup_account.py    # Account lookup service
-│   │   ├── match_history.py     # Match history processing
-│   │   └── ranked_info.py       # Ranked information retrieval
-│   ├── detection/      # Live client integration
-│   │   ├── client_detector.py          # League client detection
-│   │   └── streaming_session_manager.py # Session management
-│   ├── overlay/        # OBS Studio integration
-│   │   ├── obs_overlay.py      # Overlay generation
-│   │   └── generate_overlay.py # Overlay CLI tool
-│   └── utils/          # Utility functions
-│       └── formatters.py       # Output formatting
-├── obs_data/           # Generated overlay files (auto-created)
-├── requirements.txt    # Python dependencies
-├── .env               # Environment variables (create this)
-└── README.md          # This file
-```
-
-## ⚡ Quick Setup
-
-### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
-```
-
-### 2. Get Your API Key
-1. Visit [Riot Developer Portal](https://developer.riotgames.com/)
-2. Create account and generate API key
-3. Copy `.env.example` to `.env` and add your key:
-```bash
-cp .env.example .env
-# Edit .env: RIOT_API_KEY=your_actual_api_key_here
-```
-
-### 3. Start Monitoring
-```bash
+cp .env.example .env        # then set RIOT_API_KEY in .env
 python main.py monitor
 ```
 
-**That's it!** Start a League game and the tool will automatically:
-- ✅ Detect your account
-- ✅ Generate OBS overlays 
-- ✅ Update every 5 seconds
-- ✅ Handle account switches
+Get a key from the [Riot Developer Portal](https://developer.riotgames.com/). Start a League game and the monitor detects the active account, writes the overlays to `obs_data/`, and refreshes them every 5 seconds by default.
 
-## 🎥 OBS Setup
+## Commands
 
-1. **Start monitoring**: `python main.py monitor`
-2. **Add Browser Source** in OBS
-3. **Set URL**: `file:///YOUR_PATH/obs_data/04_combined_overlay.html`
-4. **Dimensions**: Width 800, Height 200
-5. **Enable**: "Refresh browser when scene becomes active"
+| Command | What it does |
+|---|---|
+| `python main.py monitor` | Watch for the League client, detect account switches, keep overlays updated. |
+| `python main.py detect` | Test League client detection and show the current active account. |
+| `python main.py lookup <game_name> <tag_line> [region]` | Look up an account, its ranked info and today's matches. |
+| `python main.py overlay <game_name> <tag_line> [region]` | Generate overlay files once for one account. |
+| `python main.py help` | Show usage. |
 
-## 🔧 Configuration
+Example: `python main.py overlay CoachRogue2 Fill euw1`
 
-You can customize monitoring behavior by editing your `.env` file:
+## OBS setup
+
+1. Run `python main.py monitor` so the files exist.
+2. In OBS, add a Browser Source.
+3. Set the URL to the overlay file, for example `file:///YOUR_PATH/obs_data/04_combined_overlay.html`.
+4. Set width 800 and height 200 for the combined overlay.
+5. Enable "Refresh browser when scene becomes active".
+
+The exporter writes five files to `obs_data/` (created automatically):
+
+- `01_rank_overlay.html`: current rank and LP
+- `02_daily_stats_overlay.html`: today's game statistics
+- `03_recent_matches_overlay.html`: recent match history
+- `04_combined_overlay.html`: all-in-one display
+- `05_accounts_overlay.html`: accounts seen today
+
+## Configuration
+
+Settings come from `.env` (see `.env.example` for the full list). The ones most people change:
 
 ```bash
-# Monitoring Intervals
-GAME_CHECK_INTERVAL=1          # How often to check for active games (seconds)
-ACCOUNT_REFRESH_INTERVAL=60    # How often to refresh data when idle (seconds)  
-OVERLAY_UPDATE_INTERVAL=5      # How often to update overlays during games (seconds)
-
-# API Settings
 RIOT_API_KEY=your_key_here
-RATE_LIMIT_DELAY=0.1          # Delay between API requests
-
-# Other Settings
-SESSION_TIMEOUT=30            # HTTP request timeout
-CURRENT_SEASON=2025          # Display season year
+GAME_CHECK_INTERVAL=1          # seconds between checks for an active game
+ACCOUNT_REFRESH_INTERVAL=60    # seconds between data refreshes when idle
+OVERLAY_UPDATE_INTERVAL=5      # seconds between overlay updates during a game
+RATE_LIMIT_DELAY=0.1           # delay between API requests, in seconds
+SESSION_TIMEOUT=30             # HTTP request timeout, in seconds
+CURRENT_SEASON=2025            # season year shown in the overlays
 ```
 
-## 🌍 Supported Regions
+`REGION` pins a region; otherwise the tool tries a default list of regions when it looks up an account (`euw1`, `na1`, `eun1`, `kr`, `br1`, `jp1`, `oc1`, `ru`, `tr1`, `la1`, `la2`). `RIOT_REGION_DETECTION_ORDER` overrides that list.
 
-- **NA1**: North America
-- **EUW1**: Europe West  
-- **EUN1**: Europe Nordic & East
-- **KR**: Korea
-- **JP1**: Japan
-- **BR1**: Brazil
-- **LAN/LAS**: Latin America
-- **OC1**: Oceania
-- **RU**: Russia
-- **TR1**: Turkey
+## How it works
 
-## 📋 How It Works
+1. `monitor` starts and polls the League client's local Live Client API.
+2. When a game starts, it identifies the active account.
+3. It fetches rank and match data from the Riot API and writes the overlay files.
+4. It keeps refreshing during the game and handles switches between accounts.
 
-1. **Start monitoring**: `python main.py monitor`
-2. **Launch League**: The tool detects when you start a game
-3. **Auto-detection**: Identifies your current account from the live client
-4. **Overlay generation**: Creates/updates HTML overlays with your stats
-5. **Live updates**: Refreshes data every 5 seconds during games
-6. **Account switching**: Seamlessly handles multiple accounts
+## Layout
 
-## 🎮 Overlay Features
+```
+main.py                  # CLI entry point
+src/
+  api/                   # Riot API client and configuration
+  data/                  # account lookup, match history, ranked info
+  detection/             # League client detection and session management
+  overlay/               # overlay generation (obs_overlay.py, generate_overlay.py)
+  utils/                 # console and formatting helpers
+.env.example             # settings template
+requirements.txt         # Python dependencies
+```
 
-The generated overlays include:
-- **🏆 Current rank and LP**
-- **📊 Today's game statistics** 
-- **🎯 Recent match history**
-- **👥 Session account tracking**
-- **⚡ Live updates every 5 seconds**
-- **🎨 Professional League-themed design**
+## License
 
-## 📄 License
+MIT, see [LICENSE](LICENSE). Respect the Riot Games API Terms of Service and rate limits.
 
-This project is for educational and personal use. Please respect Riot Games' API Terms of Service and rate limits.
-
----
-
-**⚠️ Disclaimer**: This tool is not affiliated with Riot Games. League of Legends is a trademark of Riot Games, Inc.
+This tool is not affiliated with Riot Games. League of Legends is a trademark of Riot Games, Inc.
